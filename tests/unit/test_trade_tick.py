@@ -35,3 +35,26 @@ def test_trade_tick_notional():
     """Verify the notional property calculation."""
     tick = TradeTick(inst_id="BTC", ts=1, price=50000.0, size=0.5, side="buy", trade_id="1")
     assert tick.notional == 25000.0
+
+def test_trade_tick_split():
+    """Verify the split method behavior and contract preconditions."""
+    tick = TradeTick(inst_id="BTC", ts=1, price=50000.0, size=0.5, side="buy", trade_id="1")
+    split_tick = tick.split(0.2)
+    assert split_tick.size == 0.2
+    assert split_tick.inst_id == "BTC"
+    assert split_tick.ts == 1
+    assert split_tick.price == 50000.0
+    assert split_tick.side == "buy"
+    assert split_tick.trade_id == "1"
+
+    # Precondition type validation
+    with pytest.raises(TypeError, match="new_size must be a float or integer"):
+        tick.split("invalid")
+    with pytest.raises(TypeError, match="new_size must be a float or integer"):
+        tick.split(None)
+
+    # Precondition value validation
+    with pytest.raises(ValueError, match="new_size must be strictly positive"):
+        tick.split(0)
+    with pytest.raises(ValueError, match="new_size must be strictly positive"):
+        tick.split(-0.5)

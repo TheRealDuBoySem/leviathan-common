@@ -1,5 +1,5 @@
 import pytest
-from leviathan_common.utils import format_price, parse_timeframe
+from leviathan_common.utils import format_price, parse_timeframe, get_decimal_precision, align_timestamp
 
 def test_format_price_preconditions_and_formatting():
     """Verify format_price preconditions validation and formatting behavior."""
@@ -61,3 +61,41 @@ def test_parse_timeframe_invalid_inputs():
         parse_timeframe("-10s")
     with pytest.raises(ValueError, match="timeframe must represent a positive duration"):
         parse_timeframe("0ms")
+
+
+def test_get_decimal_precision():
+    """Verify that get_decimal_precision computes decimal length correctly."""
+    assert get_decimal_precision(0.0001) == 4
+    assert get_decimal_precision(0.01) == 2
+    assert get_decimal_precision(0.5) == 1
+    assert get_decimal_precision(1.0) == 0
+    assert get_decimal_precision(10) == 0
+    assert get_decimal_precision(0.0000000001) == 10
+
+    # Test type contract validation
+    with pytest.raises(TypeError, match="val must be a float or integer"):
+        get_decimal_precision("invalid")
+    with pytest.raises(TypeError, match="val must be a float or integer"):
+        get_decimal_precision(None)
+
+
+def test_align_timestamp():
+    """Verify that align_timestamp aligns timestamps correctly to timeframe boundaries."""
+    assert align_timestamp(1500, 1000) == (1000, 2000)
+    assert align_timestamp(1000, 1000) == (1000, 2000)
+    assert align_timestamp(999, 1000) == (0, 1000)
+    assert align_timestamp(2500, 5000) == (0, 5000)
+
+    # Precondition type validation
+    with pytest.raises(TypeError, match="ts must be an integer"):
+        align_timestamp("1500", 1000)
+    with pytest.raises(TypeError, match="timeframe_ms must be an integer"):
+        align_timestamp(1500, "1000")
+
+    # Precondition value validation
+    with pytest.raises(ValueError, match="ts must be positive"):
+        align_timestamp(0, 1000)
+    with pytest.raises(ValueError, match="timeframe_ms must be positive"):
+        align_timestamp(1500, 0)
+    with pytest.raises(ValueError, match="timeframe_ms must be positive"):
+        align_timestamp(1500, -1000)

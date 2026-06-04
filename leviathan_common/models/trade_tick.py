@@ -58,3 +58,19 @@ class TradeTick:
             - The result is guaranteed to be strictly positive (> 0).
         """
         return float(self.price * self.size)
+
+    def split(self, new_size: float) -> 'TradeTick':
+        """
+        Creates a copy of the TradeTick with a new size.
+        Used for splitting trade ticks during aggregation.
+
+        Preconditions:
+            - new_size must be a positive float or int.
+        """
+        if not isinstance(new_size, (int, float)):
+            raise TypeError("new_size must be a float or integer")
+        if new_size <= 0:
+            raise ValueError(f"new_size must be strictly positive, got {new_size}")
+            
+        from dataclasses import replace
+        return replace(self, size=float(new_size))

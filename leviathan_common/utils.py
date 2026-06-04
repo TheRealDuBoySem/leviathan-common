@@ -1,5 +1,20 @@
 from typing import Optional
 
+def get_decimal_precision(val: float) -> int:
+    """
+    Calculates the decimal precision (number of digits after the decimal point)
+    of a floating point number up to 12 decimal places.
+
+    Preconditions:
+        - val must be a float or integer.
+    """
+    if not isinstance(val, (int, float)):
+        raise TypeError("val must be a float or integer")
+    s_val = f"{val:.12f}".rstrip('0')
+    decimals = s_val.split('.')[-1]
+    return len(decimals)
+
+
 def format_price(price: float, tick_size: Optional[float] = None) -> str:
     """
     Formats price to string based on the tick_size precision, falling back to dynamic precision.
@@ -18,8 +33,7 @@ def format_price(price: float, tick_size: Optional[float] = None) -> str:
         if tick_size <= 0:
             raise ValueError("tick_size must be strictly positive")
 
-        s_tick = f"{tick_size:.12f}".rstrip('0')
-        decimals_count = len(s_tick.split('.')[-1])
+        decimals_count = get_decimal_precision(tick_size)
         return f"{price:.{decimals_count}f}"
 
     s = f"{price:.8f}".rstrip('0')
@@ -64,3 +78,21 @@ def parse_timeframe(tf_str: str) -> int:
     if res <= 0:
         raise ValueError("timeframe must represent a positive duration")
     return res
+
+def align_timestamp(ts: int, timeframe_ms: int) -> tuple[int, int]:
+    """
+    Aligns a timestamp to a timeframe boundary.
+    Returns a tuple of (start_ts, end_ts).
+    
+    Preconditions:
+        - ts must be a positive integer.
+        - timeframe_ms must be a positive integer.
+    """
+    if not isinstance(ts, int) or ts <= 0:
+        raise TypeError("ts must be an integer") if not isinstance(ts, int) else ValueError("ts must be positive")
+    if not isinstance(timeframe_ms, int) or timeframe_ms <= 0:
+        raise TypeError("timeframe_ms must be an integer") if not isinstance(timeframe_ms, int) else ValueError("timeframe_ms must be positive")
+        
+    start_ts = (ts // timeframe_ms) * timeframe_ms
+    end_ts = start_ts + timeframe_ms
+    return start_ts, end_ts
