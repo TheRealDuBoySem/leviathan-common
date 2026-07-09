@@ -1,3 +1,3 @@
 # Root init for leviathan_common package
-__version__ = "0.16.2"
+__version__ = "0.16.3"
 
